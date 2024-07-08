@@ -1,42 +1,41 @@
-"use client";
+"use client"; // Optional directive for client-side components in Next.js
 
 import SubsTableItem from "@/Components/adminComponents/SubsTableItem";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const page = () => {
+// Wrap the component definition in a React functional component
+function SubscriptionsList() { // Capitalize the function name
 
+  const [emails, setEmails] = useState([]); // State variable for subscription emails
 
-    const [emails,setEmails] = useState([]);
+  const fetchEmails = async () => {
+    const response = await axios.get('/api/email');
+    setEmails(response.data.emails);
+  };
 
-    const fetchEmails = async () => {
-        const response = await axios.get('/api/email');
-        setEmails(response.data.emails)
+  const deleteEmail = async (mongoId) => {
+    const response = await axios.delete('/api/email', {
+      params: {
+        id: mongoId,
+      },
+    });
+    if (response.data.success) {
+      toast.success(response.data.msg);
+      fetchEmails(); // Refetch emails after deletion
+    } else {
+      toast.error("Error");
     }
+  };
 
-    const deleteEmail = async (mongoId) =>{
-        const response = await axios.delete('/api/email',{
-            params:{
-                id:mongoId
-            }
-        })
-        if (response.data.success) {
-            toast.success(response.data.msg);
-            fetchEmails();
-        }
-        else{
-            toast.error("Error");
-        }
-    }
-
-    useEffect(()=>{
-        fetchEmails();
-    },[])
+  useEffect(() => {
+    fetchEmails(); // Fetch emails on component mount
+  }, []); // Empty dependency array to run the effect only once
 
   return (
     <div className="flex-1 pt-5 px-5 sm:pt-12 sm:pl-16">
-      <h1>All Subscription</h1>
+      <h1>All Subscriptions</h1>
       <div className="relative max-w-[600px] h-[80vh] overflow-x-auto mt-4 border border-gray-400 srollbar-hide">
         <table className="w-full text-sm text-gray-500">
           <thead className="text-xs text-left text-gray-700 uppercase bg-gray-50">
@@ -53,14 +52,22 @@ const page = () => {
             </tr>
           </thead>
           <tbody>
-            {emails.map((item,index)=>{
-                return <SubsTableItem key={index} mongoId={item._id} deleteEmail={deleteEmail} email={item.email} date={item.date} />;
+            {emails.map((item, index) => {
+              return (
+                <SubsTableItem
+                  key={index}
+                  mongoId={item._id}
+                  deleteEmail={deleteEmail}
+                  email={item.email}
+                  date={item.date}
+                />
+              );
             })}
           </tbody>
         </table>
       </div>
     </div>
   );
-};
+}
 
-export default page;
+export default SubscriptionsList; // Export the component
